@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PolyEmpire - Битва за империю</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PolyEmpire</h1>
+            <p>Стратегическая битва за господство</p>
+        </header>
+        
+        <main class="main-menu">
+            <div class="menu-card">
+                <h2>Начать игру</h2>
+                <button id="startGame" class="btn-primary">Новая игра</button>
+            </div>
+            
+            <div class="menu-card">
+                <h2>Загрузка</h2>
+                <button id="loadGame" class="btn-secondary" disabled>Загрузить игру (скоро)</button>
+            </div>
+            
+            <div class="menu-card">
+                <h2>Племена</h2>
+                <div class="tribes-list">
+                    <div class="tribe" data-tribe="imperius">
+                        <div class="tribe-color" style="background: #ff6b6b;"></div>
+                        <span>Империус</span>
+                    </div>
+                    <div class="tribe" data-tribe="bardur">
+                        <div class="tribe-color" style="background: #4ecdc4;"></div>
+                        <span>Бардур</span>
+                    </div>
+                </div>
+            </div>
+        </main>
+        
+        <div id="battlefield" class="battlefield-container hidden">
+            <div class="game-header">
+                <div class="player-info">
+                    <span>Звезды: <span id="starsCount">5</span></span>
+                    <span>Ход: <span id="turnCount">1</span></span>
+                </div>
+                <button id="endTurn" class="btn-primary">Завершить ход</button>
+            </div>
+            <canvas id="gameCanvas" width="800" height="600"></canvas>
+        </div>
+    </div>
+
+    <script src="game.js"></script>
+</body>
+</html>
