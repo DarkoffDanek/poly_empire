@@ -8,8 +8,8 @@ class PolyEmpireGame {
         
         // Игровые константы
         this.TILE_SIZE = 40;
-        this.GRID_WIDTH = 20;
-        this.GRID_HEIGHT = 15;
+        this.GRID_WIDTH = 30;
+        this.GRID_HEIGHT = 35;
         
         // Текстуры
         this.textures = {};
