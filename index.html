@@ -3,54 +3,104 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PolyEmpire - Битва за империю</title>
+    <title>PolyEmpire</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div class="container">
-        <header>
-            <h1>PolyEmpire</h1>
-            <p>Стратегическая битва за мировое господство</p>
-        </header>
-        
-        <main class="main-menu">
-            <div class="menu-card">
-                <h2>Начать игру</h2>
-                <button id="startGame" class="btn-primary">Новая игра</button>
-            </div>
-            
-            <div class="menu-card">
-                <h2>Загрузка</h2>
-                <button id="loadGame" class="btn-secondary" disabled>Загрузить игру (скоро)</button>
-            </div>
-            
-            <div class="menu-card">
-                <h2>Племена</h2>
-                <div class="tribes-list">
-                    <div class="tribe" data-tribe="imperius">
-                        <div class="tribe-color" style="background: #ff6b6b;"></div>
-                        <span>Имперус</span>
-                    </div>
-                    <div class="tribe" data-tribe="bardur">
-                        <div class="tribe-color" style="background: #4ecdc4;"></div>
-                        <span>Кустодес</span>
-                    </div>
+    <div id="gameContainer">
+        <!-- Экран выбора племени -->
+        <div id="tribeSelection" class="screen">
+            <h1>Выберите племя</h1>
+            <div class="tribes">
+                <div class="tribe-card" data-tribe="imperius">
+                    <h3>Империус</h3>
+                    <p>⚔️ Сильная армия</p>
+                    <p>Стартовый бонус: +2 к атаке</p>
+                </div>
+                <div class="tribe-card" data-tribe="xin-xi">
+                    <h3>Син-Си</h3>
+                    <p>🏔️ Горные мастера</p>
+                    <p>Стартовый бонус: видение гор</p>
+                </div>
+                <div class="tribe-card" data-tribe="bardur">
+                    <h3>Бардур</h3>
+                    <p>🌲 Лесные жители</p>
+                    <p>Стартовый бонус: +1 к ресурсам</p>
                 </div>
             </div>
-        </main>
-        
-        <div id="battlefield" class="battlefield-container hidden">
-            <div class="game-header">
-                <div class="player-info">
-                    <span>Звезды: <span id="starsCount">5</span></span>
-                    <span>Ход: <span id="turnCount">1</span></span>
-                </div>
-                <button id="endTurn" class="btn-primary">Завершить ход</button>
-            </div>
-            <canvas id="gameCanvas" width="800" height="600"></canvas>
         </div>
-    </div>
 
+        <!-- Основной игровой интерфейс -->
+        <div id="mainGame" class="screen hidden">
+            <div id="ui">
+                <div id="playerInfo">
+                    <div>Племя: <span id="tribeName">-</span></div>
+                    <div>Звёзды: <span id="stars">10</span></div>
+                    <div>Ход: <span id="turn">1</span></div>
+                    <div>Технологии: <span id="techCount">0</span></div>
+                </div>
+                <div id="controls">
+                    <button id="techTreeBtn">Дерево технологий</button>
+                    <button id="endTurn">Завершить ход</button>
+                </div>
+            </div>
+            
+            <div id="gameArea">
+                <canvas id="gameCanvas" width="800" height="600"></canvas>
+                <div id="sidePanel">
+                    <div id="unitInfo" class="panel-section">
+                        <h3>Выбранный юнит</h3>
+                        <div id="unitDetails"></div>
+                    </div>
+                    <div id="cityInfo" class="panel-section">
+                        <h3>Города</h3>
+                        <div id="cityDetails"></div>
+                    </div>
+                    <div id="actions" class="panel-section">
+                        <h3>Действия</h3>
+                        <div id="actionButtons"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Модальное окно технологий -->
+        <div id="techModal" class="modal hidden">
+            <div class="modal-content">
+                <span class="close">&times;</span>
+                <h2>Дерево технологий</h2>
+                <div id="techTree">
+                    <div class="tech-tier">
+                        <h3>Тиер 1</h3>
+                        <div class="tech" data-tech="fishing" data-cost="5">
+                            <span class="tech-name">Рыболовство</span>
+                            <span class="tech-cost">5 звёзд</span>
+                            <p>Открывает рыболовные лодки</p>
+                        </div>
+                        <div class="tech" data-tech="organization" data-cost="3">
+                            <span class="tech-name">Организация</span>
+                            <span class="tech-cost">3 звезды</span>
+                            <p>Увеличивает доход городов</p>
+                        </div>
+                    </div>
+                    <div class="tech-tier">
+                        <h3>Тиер 2</h3>
+                        <div class="tech" data-tech="riding" data-cost="8">
+                            <span class="tech-name">Верховая езда</span>
+                            <span class="tech-cost">8 звёзд</span>
+                            <p>Открывает конных воинов</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Мини-карта -->
+        <div id="minimap"></div>
+
+        <!-- Уведомления -->
+        <div id="notifications"></div>
+    </div>
     <script src="game.js"></script>
 </body>
 </html>
