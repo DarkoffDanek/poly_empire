@@ -15,14 +15,19 @@ class PolyEmpireGame {
         this.mapSize = { width: 20, height: 15 };
         this.tileSize = 40;
 
+        console.log("Game initializing..."); // Для отладки
+        
         this.initializeEventListeners();
         this.generateMap();
     }
 
     initializeEventListeners() {
+        console.log("Initializing event listeners..."); // Для отладки
+        
         // Выбор племени
         document.querySelectorAll('.tribe-card').forEach(card => {
             card.addEventListener('click', (e) => {
+                console.log("Tribe clicked:", e.currentTarget.dataset.tribe); // Для отладки
                 this.selectTribe(e.currentTarget.dataset.tribe);
             });
         });
@@ -30,22 +35,44 @@ class PolyEmpireGame {
         // Кнопки управления
         document.getElementById('endTurn').addEventListener('click', () => this.endTurn());
         document.getElementById('techTreeBtn').addEventListener('click', () => this.showTechTree());
-        document.querySelector('.close').addEventListener('click', () => this.hideTechTree());
+        
+        // Исправляем закрытие модального окна
+        const closeButton = document.querySelector('.close');
+        if (closeButton) {
+            closeButton.addEventListener('click', () => this.hideTechTree());
+        }
 
         // Клик по карте
         this.canvas.addEventListener('click', (e) => this.handleCanvasClick(e));
 
-        // Клик по технологиям
-        document.querySelectorAll('.tech').forEach(tech => {
-            tech.addEventListener('click', (e) => this.researchTech(e.currentTarget));
+        // Клик по технологиям - делегирование событий
+        document.getElementById('techTree').addEventListener('click', (e) => {
+            const techElement = e.target.closest('.tech');
+            if (techElement) {
+                this.researchTech(techElement);
+            }
         });
     }
 
     selectTribe(tribeId) {
+        console.log("Selecting tribe:", tribeId); // Для отладки
+        
         this.selectedTribe = tribeId;
-        document.getElementById('tribeName').textContent = this.getTribeName(tribeId);
-        document.getElementById('tribeSelection').classList.add('hidden');
-        document.getElementById('mainGame').classList.remove('hidden');
+        
+        // Обновляем имя племени в UI
+        const tribeNameElement = document.getElementById('tribeName');
+        if (tribeNameElement) {
+            tribeNameElement.textContent = this.getTribeName(tribeId);
+        }
+        
+        // Переключаем экраны
+        const tribeSelection = document.getElementById('tribeSelection');
+        const mainGame = document.getElementById('mainGame');
+        
+        if (tribeSelection && mainGame) {
+            tribeSelection.classList.add('hidden');
+            mainGame.classList.remove('hidden');
+        }
         
         this.applyTribeBonus(tribeId);
         this.initializePlayer();
@@ -67,7 +94,11 @@ class PolyEmpireGame {
         const bonuses = {
             'imperius': () => {
                 // +2 к атаке для всех юнитов
-                this.units.forEach(unit => unit.attack += 2);
+                this.units.forEach(unit => {
+                    if (unit.tribe === this.selectedTribe) {
+                        unit.attack += 2;
+                    }
+                });
             },
             'xin-xi': () => {
                 // Видение гор
@@ -80,6 +111,7 @@ class PolyEmpireGame {
             'bardur': () => {
                 // +1 к ресурсам
                 this.stars += 5; // Стартовый бонус
+                this.updateUI();
             }
         };
         
@@ -114,9 +146,13 @@ class PolyEmpireGame {
             income: 2,
             tribe: this.selectedTribe
         });
+        
+        console.log("Player initialized with unit at:", startX, startY); // Для отладки
     }
 
     generateMap() {
+        console.log("Generating map..."); // Для отладки
+        
         const terrainTypes = ['grass', 'forest', 'mountain', 'water'];
         
         for (let y = 0; y < this.mapSize.height; y++) {
@@ -148,26 +184,35 @@ class PolyEmpireGame {
 
         // Открываем стартовую область
         this.exploreArea(3, 6, 3);
+        
+        console.log("Map generated with size:", this.mapSize); // Для отладки
     }
 
     exploreArea(centerX, centerY, radius) {
         for (let y = Math.max(0, centerY - radius); y <= Math.min(this.mapSize.height - 1, centerY + radius); y++) {
             for (let x = Math.max(0, centerX - radius); x <= Math.min(this.mapSize.width - 1, centerX + radius); x++) {
-                this.map[y][x].explored = true;
+                if (this.map[y] && this.map[y][x]) {
+                    this.map[y][x].explored = true;
+                }
             }
         }
     }
 
     handleCanvasClick(e) {
+        if (!this.selectedTribe) return;
+        
         const rect = this.canvas.getBoundingClientRect();
         const x = Math.floor((e.clientX - rect.left) / this.tileSize);
         const y = Math.floor((e.clientY - rect.top) / this.tileSize);
+
+        console.log("Canvas clicked at:", x, y); // Для отладки
 
         // Проверяем клик на юнита
         const clickedUnit = this.units.find(unit => unit.x === x && unit.y === y);
         if (clickedUnit && clickedUnit.tribe === this.selectedTribe) {
             this.selectedUnit = clickedUnit;
             this.updateUnitInfo();
+            this.showNotification('Юнит выбран');
             return;
         }
 
@@ -175,6 +220,8 @@ class PolyEmpireGame {
         if (this.selectedUnit && this.canMoveTo(x, y)) {
             this.moveUnit(this.selectedUnit, x, y);
             this.exploreArea(x, y, 2);
+        } else if (this.selectedUnit) {
+            this.showNotification('Невозможно переместиться в эту клетку');
         }
     }
 
@@ -182,6 +229,8 @@ class PolyEmpireGame {
         if (x < 0 || x >= this.mapSize.width || y < 0 || y >= this.mapSize.height) return false;
         
         const tile = this.map[y][x];
+        if (!tile) return false;
+        
         if (tile.type === 'water' && !this.researchedTechs.has('fishing')) return false;
         if (tile.type === 'mountain') return false;
 
@@ -202,6 +251,7 @@ class PolyEmpireGame {
 
         this.updateUnitInfo();
         this.render();
+        this.showNotification(`Юнит перемещен в (${x}, ${y})`);
     }
 
     foundVillage(x, y) {
@@ -223,7 +273,10 @@ class PolyEmpireGame {
         const tech = techElement.dataset.tech;
         const cost = parseInt(techElement.dataset.cost);
 
-        if (this.researchedTechs.has(tech)) return;
+        if (this.researchedTechs.has(tech)) {
+            this.showNotification('Технология уже исследована');
+            return;
+        }
         if (this.stars < cost) {
             this.showNotification('Недостаточно звёзд!');
             return;
@@ -243,8 +296,11 @@ class PolyEmpireGame {
         switch(tech) {
             case 'organization':
                 this.cities.forEach(city => {
-                    city.income += 1;
+                    if (city.tribe === this.selectedTribe) {
+                        city.income += 1;
+                    }
                 });
+                this.showNotification('Доход всех городов увеличен!');
                 break;
             case 'fishing':
                 this.showNotification('Теперь можно перемещаться по воде!');
@@ -261,11 +317,15 @@ class PolyEmpireGame {
         
         // Восстанавливаем движение юнитов
         this.units.forEach(unit => {
-            unit.movesLeft = unit.movement;
+            if (unit.tribe === this.selectedTribe) {
+                unit.movesLeft = unit.movement;
+            }
         });
 
         // Собираем доход
-        const income = this.cities.reduce((sum, city) => sum + city.income, 0);
+        const income = this.cities
+            .filter(city => city.tribe === this.selectedTribe)
+            .reduce((sum, city) => sum + city.income, 0);
         this.stars += income;
 
         // Случайные события
@@ -286,14 +346,18 @@ class PolyEmpireGame {
             },
             () => {
                 if (this.units.length > 0) {
-                    const unit = this.units[0];
-                    unit.attack += 2;
-                    this.showNotification('Юниты прошли тренировку! +2 к атаке');
+                    const unit = this.units.find(u => u.tribe === this.selectedTribe);
+                    if (unit) {
+                        unit.attack += 2;
+                        this.showNotification('Юниты прошли тренировку! +2 к атаке');
+                    }
                 }
             },
             () => {
                 this.cities.forEach(city => {
-                    city.population += 1;
+                    if (city.tribe === this.selectedTribe) {
+                        city.population += 1;
+                    }
                 });
                 this.showNotification('Бум рождаемости! Население городов увеличено');
             }
@@ -311,6 +375,8 @@ class PolyEmpireGame {
 
     updateUnitInfo() {
         const unitDetails = document.getElementById('unitDetails');
+        if (!unitDetails) return;
+        
         if (this.selectedUnit) {
             unitDetails.innerHTML = `
                 <p>Тип: Воин</p>
@@ -325,7 +391,10 @@ class PolyEmpireGame {
 
     updateCityInfo() {
         const cityDetails = document.getElementById('cityDetails');
-        cityDetails.innerHTML = this.cities.map(city => `
+        if (!cityDetails) return;
+        
+        const playerCities = this.cities.filter(city => city.tribe === this.selectedTribe);
+        cityDetails.innerHTML = playerCities.map(city => `
             <div class="city-item">
                 <strong>${city.name}</strong><br>
                 Уровень: ${city.level}<br>
@@ -345,6 +414,8 @@ class PolyEmpireGame {
 
     showNotification(message) {
         const notifications = document.getElementById('notifications');
+        if (!notifications) return;
+        
         const notification = document.createElement('div');
         notification.className = 'notification';
         notification.textContent = message;
@@ -352,11 +423,15 @@ class PolyEmpireGame {
         notifications.appendChild(notification);
         
         setTimeout(() => {
-            notification.remove();
+            if (notification.parentNode) {
+                notification.parentNode.removeChild(notification);
+            }
         }, 3000);
     }
 
     render() {
+        if (!this.ctx) return;
+        
         this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
         
         // Отрисовка карты
@@ -382,6 +457,7 @@ class PolyEmpireGame {
         // Обновляем информацию в UI
         this.updateUnitInfo();
         this.updateCityInfo();
+        this.updateUI();
     }
 
     drawTile(x, y, tile) {
@@ -462,5 +538,6 @@ class PolyEmpireGame {
 
 // Запуск игры при загрузке страницы
 window.addEventListener('load', () => {
+    console.log("Window loaded, starting game...");
     new PolyEmpireGame();
 });
